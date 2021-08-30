@@ -31,6 +31,9 @@ fn main() -> ! {
     let mut led = gpioc.pc6.into_push_pull_output();
     let sda = gpioa.pa10.into_open_drain_output();
     let scl = gpioa.pa9.into_open_drain_output();
+    let mut temp:f32;
+    let mut hum:f32;
+
     hprintln!("Pins delagated");
     let mut timer = dp.TIM17.timer(&mut rcc);
 
@@ -38,29 +41,24 @@ fn main() -> ! {
 
     let conf:Config = Config::new(100.khz());//with_timing(0x2020_151b)
 
-    delay_local.delay(20.ms());
+
     let mut i2c = dp
         .I2C1
         .i2c(sda, scl, conf, &mut rcc);//new(100.khz())
     let mut dev = Hdc1080::new(i2c, delay).unwrap();
     hprintln!("device created");
+    dev.init().unwrap();
 
-    delay_local.delay(20.ms());
-    hprintln!("man id {}", dev.get_man_id().unwrap());
+    delay_local.delay(50.ms());
 
+    hprintln!("updated config {}", dev.read_config().unwrap());
 
-    timer.start(50.ms());
+    timer.start(500.ms());
     loop {
         led.toggle().unwrap();
-        delay_local.delay(20.ms());
-        hprintln!("temperature {}", dev.temperature().unwrap());
-
-        // match i2c.write(0x40, &[0xff]) {
-        //     Ok(_) => hprintln!("ok{:?}",buf).unwrap(),
-        //     Err(err) => hprintln!("error: {:?}", err).unwrap(),
-        // }
-
-        //led.set_low().unwrap();
+        let (temp, hum) = dev.read().unwrap();
+        hprintln!("temperature {}", temp);
+        hprintln!("humidity {}", hum);
 
         block!(timer.wait()).unwrap();
     }
