@@ -51,7 +51,10 @@ fn main() -> ! {
 
     delay_local.delay(50.ms());
 
-    hprintln!("updated config {}", dev.read_config().unwrap());
+    hprintln!("device ID {:?}", dev.get_device_id().unwrap());
+    hprintln!("manufacturer id {:?}", dev.get_man_id().unwrap());
+    hprintln!("Serial ID {:?}", dev.get_serial_id().unwrap());
+    hprintln!("curent config {:?}", dev.read_config().unwrap());
 
     timer.start(500.ms());
     loop {
